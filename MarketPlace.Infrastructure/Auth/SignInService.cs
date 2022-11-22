@@ -20,7 +20,6 @@ public class SignInService : ISignInService {
 
     public async Task<LoginResult> SignInAsync(LoginRequest request) {
         
-        
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password)) {

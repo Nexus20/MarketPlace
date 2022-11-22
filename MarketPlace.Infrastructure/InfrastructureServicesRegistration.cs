@@ -33,7 +33,10 @@ public static class InfrastructureServicesRegistration
             .AddRoleManager<RoleManager<AppRole>>()
             .AddUserManager<UserManager<AppUser>>();
 
-        services.AddScoped(typeof(IAsyncRepository<>), typeof(RepositoryBase<>));
+        services.AddScoped(typeof(IRepository<>), typeof(RepositoryBase<>));
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IShopRepository, ShopRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
 
         services.AddScoped<IIdentityInitializer, IdentityInitializer>();
         services.AddScoped<ISignInService, SignInService>();

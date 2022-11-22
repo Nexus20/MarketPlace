@@ -4,7 +4,7 @@ using MarketPlace.Domain.Entities.Abstract;
 
 namespace MarketPlace.Application.Interfaces.Persistent;
 
-public interface IAsyncRepository<TEntity> where TEntity : BaseEntity
+public interface IRepository<TEntity> where TEntity : BaseEntity
 {
     Task<List<TEntity>> GetAllAsync();
     Task<List<TEntity>> GetAsync(Expression<Func<TEntity, bool>>? predicate);

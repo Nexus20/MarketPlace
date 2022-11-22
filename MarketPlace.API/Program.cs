@@ -16,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddCors(o =>
+    o.AddPolicy("AllowAll", b => b.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
 builder.Host.UseSerilog((context, config) => config
     .WriteTo.Console()
     .ReadFrom.Configuration(context.Configuration));
@@ -38,6 +41,7 @@ if (app.Environment.IsDevelopment()) {
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

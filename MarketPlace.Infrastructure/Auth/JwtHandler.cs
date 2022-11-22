@@ -1,6 +1,9 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MarketPlace.Application.Authorization;
+using MarketPlace.Application.Interfaces.Persistent;
+using MarketPlace.Domain.Entities;
 using MarketPlace.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -12,9 +15,11 @@ public class JwtHandler {
     
     private readonly IConfigurationSection _jwtSettings;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IRepository<User> _userRepository;
 
-    public JwtHandler(IConfiguration configuration, UserManager<AppUser> userManager) {
+    public JwtHandler(IConfiguration configuration, UserManager<AppUser> userManager, IRepository<User> userRepository) {
         _userManager = userManager;
+        _userRepository = userRepository;
         _jwtSettings = configuration.GetSection("JwtSettings");
     }
     
@@ -37,6 +42,14 @@ public class JwtHandler {
         foreach (var role in roles) {
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
+
+        var domainUser = await _userRepository.GetByIdAsync(user.Id);
+        
+        if(domainUser?.Shop != null)
+            claims.Add(new Claim(CustomClaimTypes.ShopId, domainUser.Shop.Id));
+        
+        if(domainUser?.Buyer != null)
+            claims.Add(new Claim(CustomClaimTypes.BuyerId, domainUser.Buyer.Id));
         
         return claims;
     }

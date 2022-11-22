@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MarketPlace.Infrastructure.Repositories;
 
-public class RepositoryBase<TEntity> : IAsyncRepository<TEntity> where TEntity : BaseEntity
+public class RepositoryBase<TEntity> : IRepository<TEntity> where TEntity : BaseEntity
 {
     protected readonly IMapper Mapper;
     protected readonly ApplicationDbContext DbContext;

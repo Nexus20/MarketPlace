@@ -53,8 +53,8 @@ public class IdentityInitializer : IIdentityInitializer
     private AppUser RegisterSuperAdmin() {
 
         var superAdmin = new AppUser() {
-            UserName = "root@health-tracking.com",
-            Email = "root@health-tracking.com"
+            UserName = "root@marketplace.com",
+            Email = "root@marketplace.com"
         };
 
         _userManager.CreateAsync(superAdmin, "_QGrXyvcmTD4aVQJ_").Wait();
