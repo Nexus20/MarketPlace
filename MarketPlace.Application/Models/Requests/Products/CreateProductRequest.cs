@@ -11,5 +11,5 @@ public class CreateProductRequest
     public decimal Price { get; set; }
     public decimal? Discount { get; set; }
     public int Count { get; set; } = 0;
-    public virtual List<string>? CategoriesIds { get; set; }
+    public List<string>? CategoriesIds { get; set; }
 }

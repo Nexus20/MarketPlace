@@ -29,6 +29,11 @@ namespace MarketPlace.API.Middlewares {
                 logger.Information(exception, "Resource not found");
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
             }
+            catch (AuthorizationException exception)
+            {
+                logger.Information(exception, "Missing access rights");
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            }
             catch (Exception exception) {
                 HandleStatus500Exception(context, exception, logger);
             }

@@ -10,5 +10,6 @@ public class ProductResult : BaseResult
     public decimal Price { get; set; }
     public decimal? Discount { get; set; }
     public int Count { get; set; }
+    public string ShopId { get; set; } = null!;
     public virtual List<CategoryResult>? Categories { get; set; }
 }

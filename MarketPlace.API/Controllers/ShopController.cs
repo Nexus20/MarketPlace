@@ -1,21 +1,28 @@
+using System.Security.Claims;
+using MarketPlace.Application.Authorization;
 using MarketPlace.Application.Interfaces.Services;
-using MarketPlace.Application.Models.Requests.Categories;
+using MarketPlace.Application.Models.Requests.Products;
 using MarketPlace.Application.Models.Requests.Shops;
-using MarketPlace.Application.Models.Results.Categories;
+using MarketPlace.Application.Models.Results.Products;
 using MarketPlace.Application.Models.Results.Shops;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketPlace.API.Controllers {
     
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("[controller]")]
     public class ShopController : ControllerBase {
         
         private readonly IShopService _shopService;
+        private readonly IProductService _productService;
 
-        public ShopController(IShopService shopService)
+        public ShopController(IShopService shopService, IProductService productService)
         {
             _shopService = shopService;
+            _productService = productService;
         }
 
         [HttpGet]
@@ -25,7 +32,23 @@ namespace MarketPlace.API.Controllers {
             var result = await _shopService.GetAsync(request);
             return Ok(result);
         }
-        
+
+        [HttpGet("[action]")]
+        [Authorize(Roles = CustomRoles.Shop)]
+        [ProducesResponseType(typeof(List<ProductResult>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetOwnProducts([FromQuery]GetProductsRequest request)
+        {
+            var ownerShopId = User.FindFirstValue(CustomClaimTypes.ShopId);
+
+            if (string.IsNullOrWhiteSpace(ownerShopId))
+                return Forbid();
+
+            request.ShopId = ownerShopId;
+            
+            var result = await _productService.GetAsync(request);
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ShopResult), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(string id)

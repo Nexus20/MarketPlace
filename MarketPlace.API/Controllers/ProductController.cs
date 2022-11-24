@@ -52,10 +52,16 @@ namespace MarketPlace.API.Controllers {
         }
         
         [HttpPut("{id}")]
+        [Authorize(Roles = CustomRoles.Shop)]
         [ProducesResponseType(typeof(ProductResult), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Create(string id, [FromBody]UpdateProductRequest request)
+        public async Task<IActionResult> Update(string id, [FromBody]UpdateProductRequest request)
         {
-            var result = await _productService.UpdateAsync(id, request);
+            var ownerShopId = User.FindFirstValue(CustomClaimTypes.ShopId);
+
+            if (string.IsNullOrWhiteSpace(ownerShopId))
+                return Forbid();
+            
+            var result = await _productService.UpdateAsync(id, request, ownerShopId);
             return Ok(result);
         }
         

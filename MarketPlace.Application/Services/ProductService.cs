@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Xml.Schema;
 using AutoMapper;
 using MarketPlace.Application.Exceptions;
 using MarketPlace.Application.Helpers.Expressions;
@@ -41,7 +42,8 @@ public class ProductService : IProductService
     public async Task<List<ProductResult>> GetAsync(GetProductsRequest request)
     {
         var predicate = CreateFilterPredicate(request);
-        var result = await _productRepository.GetAsync<ProductResult>(predicate);
+        var source = await _productRepository.GetAsync(predicate);
+        var result = _mapper.Map<List<Product>, List<ProductResult>>(source);
         return result;
     }
 
@@ -73,17 +75,36 @@ public class ProductService : IProductService
         return result;
     }
 
-    public async Task<ProductResult> UpdateAsync(string id, UpdateProductRequest request)
+    public async Task<ProductResult> UpdateAsync(string id, UpdateProductRequest request, string ownerShopId)
     {
         var productToUpdate = await _productRepository.GetByIdAsync(id);
 
         if (productToUpdate == null)
             throw new NotFoundException($"Product with such id {id} not found");
 
+        if (productToUpdate.ShopId != ownerShopId)
+            throw new AuthorizationException("You can't update products that don't belong to your shop");
+
         _mapper.Map(request, productToUpdate);
+
+        if (request.CategoriesIds?.Any() == true)
+        {
+            productToUpdate.ProductCategories.RemoveAll(x => !request.CategoriesIds.Contains(x.CategoryId));
+            var categoriesToAdd = await _categoryRepository.GetAsync(x => request.CategoriesIds.Contains(x.Id));
+            productToUpdate.ProductCategories = categoriesToAdd.Select(x => new ProductCategory()
+            {
+                Category = x,
+                Product = productToUpdate
+            }).ToList();
+        }
+        else
+        {
+            productToUpdate.ProductCategories = new List<ProductCategory>();
+        }
+        
         await _productRepository.UpdateAsync(productToUpdate);
-        _logger.LogInformation("Product {@Entity} was updated successfully", productToUpdate);
-        var result = _mapper.Map<Product, ProductResult>(productToUpdate); 
+        _logger.LogInformation("Product #{@Id} was updated successfully", productToUpdate.Id);
+        var result = _mapper.Map<Product, ProductResult>(productToUpdate);
         return result;
     }
 
@@ -106,6 +127,12 @@ public class ProductService : IProductService
         {
             Expression<Func<Product, bool>> searchStringExpression = x => x.Name.Contains(request.SearchString);
             predicate = ExpressionsHelper.And(predicate, searchStringExpression);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.ShopId))
+        {
+            Expression<Func<Product, bool>> shopIdExpression = x => x.ShopId == request.ShopId;
+            predicate = ExpressionsHelper.And(predicate, shopIdExpression);
         }
         //
         // if (request.Status.HasValue && Enum.IsDefined(request.Status.Value))
