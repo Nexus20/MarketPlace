@@ -22,6 +22,7 @@ namespace MarketPlace.API.Controllers {
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(List<ProductResult>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Get([FromQuery]GetProductsRequest request)
         {
@@ -30,6 +31,7 @@ namespace MarketPlace.API.Controllers {
         }
         
         [HttpGet("{id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(ProductResult), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetById(string id)
         {

@@ -1,5 +1,4 @@
 ﻿using System.Linq.Expressions;
-using System.Xml.Schema;
 using AutoMapper;
 using MarketPlace.Application.Exceptions;
 using MarketPlace.Application.Helpers.Expressions;
@@ -29,13 +28,14 @@ public class ProductService : IProductService
 
     public async Task<ProductResult> GetByIdAsync(string id)
     {
-        var result = await _productRepository.GetByIdAsync<ProductResult>(id);
+        var source = await _productRepository.GetByIdAsync(id);
 
-        if (result == null)
+        if (source == null)
         {
             throw new NotFoundException($"Product with id \"{id}\" not found");
         }
 
+        var result = _mapper.Map<Product, ProductResult>(source);
         return result;
     }
 

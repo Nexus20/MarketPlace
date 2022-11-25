@@ -17,4 +17,5 @@ public class Product : BaseEntity
     public virtual List<OrderItem>? Items { get; set; }
     
     public virtual List<ProductCategory> ProductCategories { get; set; } = null!;
+    public decimal FinalPrice => Discount.HasValue ? Price - Price * (Discount.Value / 100) : Price;
 }

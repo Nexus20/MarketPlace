@@ -37,6 +37,8 @@ public static class InfrastructureServicesRegistration
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IShopRepository, ShopRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<IBuyerRepository, BuyerRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
 
         services.AddScoped<IIdentityInitializer, IdentityInitializer>();
         services.AddScoped<ISignInService, SignInService>();

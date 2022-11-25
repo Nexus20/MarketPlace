@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using MarketPlace.Application.Authorization;
 using MarketPlace.Application.Exceptions;
 using MarketPlace.Application.Interfaces.Persistent;
@@ -10,40 +10,42 @@ using Microsoft.Extensions.Logging;
 
 namespace MarketPlace.Infrastructure.Repositories;
 
-public class ShopRepository : RepositoryBase<Shop>, IShopRepository
+public class BuyerRepository : RepositoryBase<Buyer>, IBuyerRepository
 {
-    private readonly ILogger<ShopRepository> _logger;
+    private readonly ILogger<BuyerRepository> _logger;
     private readonly UserManager<AppUser> _userManager;
     
-    public ShopRepository(ApplicationDbContext dbContext, IMapper mapper, ILogger<ShopRepository> logger, UserManager<AppUser> userManager) : base(dbContext, mapper)
+    public BuyerRepository(ApplicationDbContext dbContext, IMapper mapper, ILogger<BuyerRepository> logger, UserManager<AppUser> userManager) : base(dbContext, mapper)
     {
         _logger = logger;
         _userManager = userManager;
     }
-    
-    public async Task AddAsync(Shop shopEntity, string password)
+
+    public async Task AddAsync(Buyer buyerEntity, string password)
     {
-        var userEntity = shopEntity.User;
         await using var transaction = await DbContext.Database.BeginTransactionAsync();
+
         try
         {
+            var userEntity = buyerEntity.User;
             await DbContext.DomainUsers.AddAsync(userEntity);
-            await DbContext.Shops.AddAsync(shopEntity);
+            await DbContext.Buyers.AddAsync(buyerEntity);
+            
             var appUser = Mapper.Map<User, AppUser>(userEntity);
 
             var identityResult = await _userManager.CreateAsync(appUser, password);
 
             if (!identityResult.Succeeded)
-                throw new IdentityException("Error while creating shop account");
+                throw new IdentityException("Error while creating doctor account");
 
             identityResult = await _userManager.AddToRolesAsync(appUser, new List<string>()
             {
                 CustomRoles.User,
-                CustomRoles.Shop,
+                CustomRoles.Buyer,
             });
 
             if (!identityResult.Succeeded)
-                throw new IdentityException("Error while adjusting shop account roles");
+                throw new IdentityException("Error while adjusting doctor account roles");
             
             await DbContext.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -51,7 +53,7 @@ public class ShopRepository : RepositoryBase<Shop>, IShopRepository
         catch (Exception e)
         {
             await transaction.RollbackAsync();
-            _logger.LogError("Error while creating a new shop: {EMessage}", e.Message);
+            _logger.LogError("Error while creating a new buyer account: {EMessage}", e.Message);
         }
     }
 }

@@ -13,10 +13,12 @@ namespace MarketPlace.API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ISignInService _signInService;
+        private readonly IUserService _userService;
 
-        public UsersController(ISignInService signInService)
+        public UsersController(ISignInService signInService, IUserService userService)
         {
             _signInService = signInService;
+            _userService = userService;
         }
 
         [HttpPost("[action]")]
@@ -27,6 +29,14 @@ namespace MarketPlace.API.Controllers
         {
             var result = await _signInService.SignInAsync(request);
             return result.IsAuthSuccessful ? Ok(result) : Unauthorized(result);
+        }
+
+        [HttpPost("[action]")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Register([FromBody] RegisterBuyerRequest request)
+        {
+            var result = await _userService.RegisterBuyerAsync(request);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
     }
 }
