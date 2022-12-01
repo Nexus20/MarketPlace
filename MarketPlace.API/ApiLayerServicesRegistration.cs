@@ -19,7 +19,7 @@ public static class ApiLayerServicesRegistration
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "MarketPlace Corner API", Version = "v1" });
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = "MarketPlace API", Version = "v1" });
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,

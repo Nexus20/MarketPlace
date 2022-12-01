@@ -26,6 +26,7 @@ namespace MarketPlace.API.Controllers {
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(List<ShopResult>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Get([FromQuery]GetShopsRequest request)
         {
@@ -58,6 +59,7 @@ namespace MarketPlace.API.Controllers {
         }
         
         [HttpPost]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(ShopResult), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create([FromBody]CreateShopRequest request)
         {
@@ -67,7 +69,7 @@ namespace MarketPlace.API.Controllers {
         
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ShopResult), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Create(string id, [FromBody]UpdateShopRequest request)
+        public async Task<IActionResult> Update(string id, [FromBody]UpdateShopRequest request)
         {
             var result = await _shopService.UpdateAsync(id, request);
             return Ok(result);
