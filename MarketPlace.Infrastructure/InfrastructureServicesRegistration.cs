@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
+using Azure.Storage.Blobs;
 using MarketPlace.Application.Interfaces.Infrastructure;
 using MarketPlace.Application.Interfaces.Persistent;
 using MarketPlace.Application.Interfaces.Services;
 using MarketPlace.Infrastructure.Auth;
+using MarketPlace.Infrastructure.Files;
 using MarketPlace.Infrastructure.Identity;
 using MarketPlace.Infrastructure.Persistence;
 using MarketPlace.Infrastructure.Repositories;
@@ -43,6 +45,10 @@ public static class InfrastructureServicesRegistration
         services.AddScoped<IIdentityInitializer, IdentityInitializer>();
         services.AddScoped<ISignInService, SignInService>();
         services.AddScoped<JwtHandler>();
+
+        var blobStorageConnectionString = configuration.GetValue<string>("BlobStorageSettings:ConnectionString");
+        services.AddSingleton(x => new BlobServiceClient(blobStorageConnectionString));
+        services.AddScoped<IFileStorageService, BlobStorageService>();
 
         return services;
     }

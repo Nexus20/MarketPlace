@@ -13,5 +13,7 @@ public class ProductProfile : Profile
         CreateMap<UpdateProductRequest, Product>();
         CreateMap<Product, ProductResult>()
             .ForMember(x => x.Categories, o => o.MapFrom(s => s.ProductCategories.Select(pc => pc.Category)));
+        
+        CreateMap<ProductPhoto, ProductPhotoResult>();
     }
 }

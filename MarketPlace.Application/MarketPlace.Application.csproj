@@ -18,9 +18,5 @@
   <ItemGroup>
     <ProjectReference Include="..\MarketPlace.Domain\MarketPlace.Domain.csproj" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Models\Dtos" />
-  </ItemGroup>
 
 </Project>

@@ -2,8 +2,10 @@
 using AutoMapper;
 using MarketPlace.Application.Exceptions;
 using MarketPlace.Application.Helpers.Expressions;
+using MarketPlace.Application.Interfaces.Infrastructure;
 using MarketPlace.Application.Interfaces.Persistent;
 using MarketPlace.Application.Interfaces.Services;
+using MarketPlace.Application.Models.Dtos;
 using MarketPlace.Application.Models.Requests.Products;
 using MarketPlace.Application.Models.Results.Products;
 using MarketPlace.Domain.Entities;
@@ -14,16 +16,20 @@ namespace MarketPlace.Application.Services;
 public class ProductService : IProductService
 {
     private readonly IProductRepository _productRepository;
+    private readonly IRepository<ProductPhoto> _productPhotosRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<ProductService> _logger;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly IFileStorageService _fileStorageService;
 
-    public ProductService(IProductRepository productRepository, IMapper mapper, ILogger<ProductService> logger, ICategoryRepository categoryRepository)
+    public ProductService(IProductRepository productRepository, IMapper mapper, ILogger<ProductService> logger, ICategoryRepository categoryRepository, IFileStorageService fileStorageService, IRepository<ProductPhoto> productPhotosRepository)
     {
         _productRepository = productRepository;
         _mapper = mapper;
         _logger = logger;
         _categoryRepository = categoryRepository;
+        _fileStorageService = fileStorageService;
+        _productPhotosRepository = productPhotosRepository;
     }
 
     public async Task<ProductResult> GetByIdAsync(string id)
@@ -75,6 +81,47 @@ public class ProductService : IProductService
         return result;
     }
 
+    public async Task<List<ProductPhotoResult>> AddImagesToProductAsync(string id, List<FileDto> filesDtos, string ownerShopId)
+    {
+        if (filesDtos.Any(x => x.Content.Length == 0))
+        {
+            throw new ValidationException("Files cannot be empty");
+        }
+
+        var validTypes = new[] { "image/jpeg", "image/png" };
+        if (filesDtos.Any(x => !validTypes.Contains(x.ContentType)))
+        {
+            throw new ValidationException("Invalid file types");
+        }
+        
+        var productToUpdate = await _productRepository.GetByIdAsync(id);
+
+        if (productToUpdate == null)
+            throw new NotFoundException($"Product with such id {id} not found");
+
+        if (productToUpdate.ShopId != ownerShopId)
+            throw new AuthorizationException("You can't update products that don't belong to your shop");
+
+        var urls = await _fileStorageService.UploadAsync(filesDtos);
+
+        var photoEntities = new List<ProductPhoto>();
+
+        foreach (var fileUrl in urls.Urls)
+        {
+            var photoEntity = new ProductPhoto()
+            {
+                Path = fileUrl,
+                ProductId = productToUpdate.Id
+            };
+            
+            photoEntities.Add(photoEntity);
+
+            await _productPhotosRepository.AddAsync(photoEntity);
+        }
+
+        return _mapper.Map<List<ProductPhoto>, List<ProductPhotoResult>>(photoEntities);
+    }
+    
     public async Task<ProductResult> UpdateAsync(string id, UpdateProductRequest request, string ownerShopId)
     {
         var productToUpdate = await _productRepository.GetByIdAsync(id);
@@ -118,7 +165,7 @@ public class ProductService : IProductService
         await _productRepository.DeleteAsync(productToDelete);
         _logger.LogInformation("Product with id {ProductId} was deleted successfully", productToDelete.Id);
     }
-    
+
     private Expression<Func<Product, bool>>? CreateFilterPredicate(GetProductsRequest request)
     {
         Expression<Func<Product, bool>>? predicate = null;
