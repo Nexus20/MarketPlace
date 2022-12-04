@@ -26,12 +26,12 @@ public class BuyerController : ControllerBase
     [ProducesResponseType(typeof(List<OrderResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOwnOrders([FromQuery] GetOrdersRequest request)
     {
-        var ownerShopId = User.FindFirstValue(CustomClaimTypes.BuyerId);
+        var ownerBuyerId = User.FindFirstValue(CustomClaimTypes.BuyerId);
 
-        if (string.IsNullOrWhiteSpace(ownerShopId))
+        if (string.IsNullOrWhiteSpace(ownerBuyerId))
             return Forbid();
 
-        request.BuyerId = ownerShopId;
+        request.BuyerId = ownerBuyerId;
 
         var result = await _orderService.GetWithDetailsAsync(request);
         return Ok(result);
